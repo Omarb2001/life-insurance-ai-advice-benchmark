@@ -1,0 +1,672 @@
+---
+title: "Proj"
+author: "Omar Badran - puf311"
+date: "2026-07-09"
+output: html_document
+---
+
+
+```{r}
+library(readxl)
+library(writexl)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(ggplot2)
+library(irr)
+library(corrplot)
+
+library(GGally)
+
+library(purrr)
+```
+
+```{r}
+df_general <- read_excel("GeneralQuestions.xlsx", sheet="Data")
+df_specific <- read_excel("SpecificQuestions.xlsx", sheet="Data")
+df_general_annotated <- read_excel("sample_response_general_completed.xlsx", sheet="Sheet1")
+df_specific_annotated <- read_excel("sample_response_specific.xlsx", sheet="Sheet1")
+```
+
+# 1. Frequency Distributions and tables
+
+```{r}
+as.data.frame(str(df_general))
+as.data.frame(summary(df_general))
+as.data.frame(table(df_general$Category))
+as.data.frame(table(df_general$Scenario))
+
+df_counts <- as.data.frame(table(df_general$Category))
+colnames(df_counts) <- c("Category", "Frequency")
+
+ggplot(df_counts, aes(x = Category, y = Frequency)) +
+  geom_col(fill = "grey") +
+  geom_text(aes(label = Frequency), vjust = -0.5, size = 3) +
+  labs(title = "Category distribution",
+       x = "Category",
+       y = "Frequency") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 30, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_text(size = 12))
+
+df_counts <- as.data.frame(table(df_general$Scenario))
+colnames(df_counts) <- c("Scenario", "Frequency")
+
+ggplot(df_counts, aes(x = Scenario, y = Frequency)) +
+  geom_col(fill = "grey") +
+  geom_text(aes(label = Frequency), vjust = -0.5, size = 3.5) +
+  labs(title = "Scenario distribution",
+       x = "Scenario",
+       y = "Frequency") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 30, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_text(size = 12))
+
+```
+
+```{r}
+as.data.frame(str(df_specific))
+as.data.frame(summary(df_specific))
+as.data.frame(table(df_specific$Company))
+
+df_counts <- as.data.frame(table(df_specific$Company))
+colnames(df_counts) <- c("Company", "Frequency")
+
+ggplot(df_counts, aes(x = Company, y = Frequency)) +
+  geom_col(fill = "grey") +
+  geom_text(aes(label = Frequency), vjust = -0.5, size = 3) +
+  labs(title = "Company distribution",
+       x = "Company",
+       y = "Frequency") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 30, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_text(size = 12))
+
+
+```
+
+```{r}
+as.data.frame(str(df_general_annotated))
+as.data.frame(summary(df_general_annotated))
+as.data.frame(table(df_general_annotated$Model))
+as.data.frame(table(df_general_annotated$Category))
+as.data.frame(table(df_general_annotated$Scenario))
+df_general_annotated |>
+  count(Model, Category) |>
+  tidyr::pivot_wider(
+    names_from = Category,
+    values_from = n,
+    values_fill = 0
+  )
+
+
+df_counts <- as.data.frame(table(df_general_annotated$Category))
+colnames(df_counts) <- c("Category", "Frequency")
+
+ggplot(df_counts, aes(x = Category, y = Frequency)) +
+  geom_col(fill = "grey") +
+  geom_text(aes(label = Frequency), vjust = -0.5, size = 3) +
+  labs(title = "Category distribution",
+       x = "Category",
+       y = "Frequency") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 30, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_text(size = 12))
+
+df_counts <- as.data.frame(table(df_general_annotated$Scenario))
+colnames(df_counts) <- c("Scenario", "Frequency")
+
+ggplot(df_counts, aes(x = Scenario, y = Frequency)) +
+  geom_col(fill = "grey") +
+  geom_text(aes(label = Frequency), vjust = -0.5, size = 3.5) +
+  labs(title = "Scenario distribution",
+       x = "Scenario",
+       y = "Frequency") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 30, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_text(size = 12))
+
+df_counts <- as.data.frame(table(df_general_annotated$Model))
+colnames(df_counts) <- c("Model", "Frequency")
+
+ggplot(df_counts, aes(x = Model, y = Frequency)) +
+  geom_col(fill = "grey") +
+  geom_text(aes(label = Frequency), vjust = -0.5, size = 3) +
+  labs(title = "Model distribution",
+       x = "Model",
+       y = "Frequency") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 30, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_text(size = 12))
+```
+
+```{r}
+as.data.frame(str(df_specific_annotated))
+as.data.frame(summary(df_specific_annotated))
+as.data.frame(table(df_specific_annotated$Model))
+as.data.frame(table(df_specific_annotated$Company))
+df_specific_annotated |>
+  count(Model, Company) |>
+  tidyr::pivot_wider(
+    names_from = Company,
+    values_from = n,
+    values_fill = 0
+  )
+
+df_counts <- as.data.frame(table(df_specific_annotated$Company))
+colnames(df_counts) <- c("Company", "Frequency")
+
+ggplot(df_counts, aes(x = Company, y = Frequency)) +
+  geom_col(fill = "grey") +
+  geom_text(aes(label = Frequency), vjust = -0.5, size = 3) +
+  labs(title = "Company distribution",
+       x = "Company",
+       y = "Frequency") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 30, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_text(size = 12))
+
+df_counts <- as.data.frame(table(df_specific_annotated$Model))
+colnames(df_counts) <- c("Model", "Frequency")
+
+ggplot(df_counts, aes(x = Model, y = Frequency)) +
+  geom_col(fill = "grey") +
+  geom_text(aes(label = Frequency), vjust = -0.5, size = 3) +
+  labs(title = "Model distribution",
+       x = "Model",
+       y = "Frequency") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    axis.text.x = element_text(angle = 30, hjust = 1, size = 10),
+    axis.text.y = element_text(size = 10),
+    axis.title = element_text(size = 12))
+```
+
+```{r}
+missing_pct <- as.data.frame(round(colSums(is.na(df_general)) / nrow(df_general) * 100, 2))
+colnames(missing_pct) <- "Missing (%)"
+missing_pct
+
+missing_pct <- as.data.frame(round(colSums(is.na(df_specific)) / nrow(df_specific) * 100, 2))
+colnames(missing_pct) <- "Missing (%)"
+missing_pct
+
+missing_pct <- as.data.frame(round(colSums(is.na(df_general_annotated)) / nrow(df_general_annotated) * 100, 2))
+colnames(missing_pct) <- "Missing (%)"
+missing_pct
+
+missing_pct <- as.data.frame(round(colSums(is.na(df_specific_annotated)) / nrow(df_specific_annotated) * 100, 2))
+colnames(missing_pct) <- "Missing (%)"
+missing_pct
+```
+
+# 2. (Weighted) Cohen's Kappa values
+## Specific
+```{r}
+df_accuracy   <- data.frame(df_specific_annotated$accuracy, df_specific_annotated$human_accuracy)
+df_safety   <- data.frame(df_specific_annotated$safety, df_specific_annotated$human_safety)
+df_completeness <- data.frame(df_specific_annotated$completeness, df_specific_annotated$human_completeness)
+df_pr    <- data.frame(df_specific_annotated$professional_referral, df_specific_annotated$human_professional_referral)
+df_overall  <- data.frame(df_specific_annotated$overall_quality, df_specific_annotated$human_overall_quality)
+
+# 2. Extract the Kappa values directly using $value
+kappa_table <- data.frame(
+  Metric = c("Accuracy", "Safety", "Completeness", "Professional Referral", "Overall Quality"),
+  Kappa  = c(
+    round(kappa2(df_accuracy, weight = "equal")$value,2),
+    round(kappa2(df_safety, weight = "equal")$value,2),
+    round(kappa2(df_completeness, weight = "equal")$value,2),
+    round(kappa2(df_pr, weight = "equal")$value,2),
+    round(kappa2(df_overall, weight = "equal")$value,2)
+  )
+)
+
+kappa_table
+```
+
+## General
+```{r}
+df_accuracy   <- data.frame(df_general_annotated$accuracy, df_general_annotated$human_accuracy)
+df_safety   <- data.frame(df_general_annotated$safety, df_general_annotated$human_safety)
+df_completeness <- data.frame(df_general_annotated$completeness, df_general_annotated$human_completeness)
+df_pr    <- data.frame(df_general_annotated$professional_referral, df_general_annotated$human_professional_referral)
+df_overall  <- data.frame(df_general_annotated$overall_quality, df_general_annotated$human_overall_quality)
+
+# 2. Extract the Kappa values directly using $value
+kappa_table <- data.frame(
+  Metric = c("Accuracy", "Safety", "Completeness", "Professional Referral", "Overall Quality"),
+  Kappa  = c(
+    round(kappa2(df_accuracy, weight = "equal")$value,2),
+    round(kappa2(df_safety, weight = "equal")$value,2),
+    round(kappa2(df_completeness, weight = "equal")$value,2),
+    round(kappa2(df_pr, weight = "equal")$value,2),
+    round(kappa2(df_overall, weight = "equal")$value,2)
+  )
+)
+
+kappa_table
+```
+# 3. Average score
+## By model
+```{r}
+#General (AI)
+
+df_general_annotated |> group_by(Model) |> summarize("Avg. Accuracy" = round(mean(accuracy),2),
+                                                        "Avg. Safety" = round(mean(safety),2),
+                                                        "Avg. Completeness" = round(mean(completeness),2),
+                                                        "Avg. PR" = round(mean(professional_referral),2),
+                                                        "Overall Average"= round(mean(overall_quality),2))
+#General (Human)
+
+df_general_annotated |> group_by(Model) |> summarize("Avg. Accuracy (H)" = round(mean(human_accuracy),2),
+                                                        "Avg. Safety (H)" = round(mean(human_safety),2),
+                                                        "Avg. Completeness (H)" = round(mean(human_completeness),2),
+                                                        "Avg. PR (H)" = round(mean(human_professional_referral),2),
+                                                        "Overall Average (H)"= round(mean(human_overall_quality),2))
+```
+
+```{r}
+#Specific
+#Specific (AI)
+
+df_specific_annotated |> group_by(Model) |> summarize("Avg. Accuracy" = round(mean(accuracy),2),
+                                                        "Avg. Safety" = round(mean(safety),2),
+                                                        "Avg. Completeness" = round(mean(completeness),2),
+                                                        "Avg. PR" = round(mean(professional_referral),2),
+                                                        "Overall Average"= round(mean(overall_quality),2))
+#Specific (Human)
+
+df_specific_annotated |> group_by(Model) |> summarize("Avg. Accuracy (H)" = round(mean(human_accuracy),2),
+                                                        "Avg. Safety (H)" = round(mean(human_safety),2),
+                                                        "Avg. Completeness (H)" = round(mean(human_completeness),2),
+                                                        "Avg. PR (H)" = round(mean(human_professional_referral),2),
+                                                        "Overall Average (H)"= round(mean(human_overall_quality),2))
+```
+
+## By Category (General Only)
+```{r}
+#General (AI)
+
+df_general_annotated |> group_by(Category) |> summarize("Avg. Accuracy" = round(mean(accuracy),2),
+                                                        "Avg. Safety" = round(mean(safety),2),
+                                                        "Avg. Completeness" = round(mean(completeness),2),
+                                                        "Avg. PR" = round(mean(professional_referral),2),
+                                                        "Overall Average"= round(mean(overall_quality),2))
+#General (Human)
+
+df_general_annotated |> group_by(Category) |> summarize("Avg. Accuracy (H)" = round(mean(human_accuracy),2),
+                                                        "Avg. Safety (H)" = round(mean(human_safety),2),
+                                                        "Avg. Completeness (H)" = round(mean(human_completeness),2),
+                                                        "Avg. PR (H)" = round(mean(human_professional_referral),2),
+                                                        "Overall Average (H)"= round(mean(human_overall_quality),2))
+```
+## By Scenario (General Only)
+```{r}
+#General (AI)
+
+df_general_annotated |> group_by(Scenario) |> summarize("Avg. Accuracy" = round(mean(accuracy),2),
+                                                        "Avg. Safety" = round(mean(safety),2),
+                                                        "Avg. Completeness" = round(mean(completeness),2),
+                                                        "Avg. PR" = round(mean(professional_referral),2),
+                                                        "Overall Average"= round(mean(overall_quality),2))
+#General (Human)
+
+df_general_annotated |> group_by(Scenario) |> summarize("Avg. Accuracy (H)" = round(mean(human_accuracy),2),
+                                                        "Avg. Safety (H)" = round(mean(human_safety),2),
+                                                        "Avg. Completeness (H)" = round(mean(human_completeness),2),
+                                                        "Avg. PR (H)" = round(mean(human_professional_referral),2),
+                                                        "Overall Average (H)"= round(mean(human_overall_quality),2))
+```
+
+## By Company (Specific Only)
+```{r}
+#Specific (AI)
+
+df_specific_annotated |> group_by(Company) |> summarize("Avg. Accuracy" = round(mean(accuracy),2),
+                                                        "Avg. Safety" = round(mean(safety),2),
+                                                        "Avg. Completeness" = round(mean(completeness),2),
+                                                        "Avg. PR" = round(mean(professional_referral),2),
+                                                        "Overall Average"= round(mean(overall_quality),2))
+#Specific (Human)
+
+df_specific_annotated |> group_by(Company) |> summarize("Avg. Accuracy (H)" = round(mean(human_accuracy),2),
+                                                        "Avg. Safety (H)" = round(mean(human_safety),2),
+                                                        "Avg. Completeness (H)" = round(mean(human_completeness),2),
+                                                        "Avg. PR (H)" = round(mean(human_professional_referral),2),
+                                                        "Overall Average (H)"= round(mean(human_overall_quality),2))
+```
+
+# 4. Correlation heatmap
+```{r}
+# Human (General)
+metric_cols <- c("human_accuracy", "human_safety", "human_completeness","human_professional_referral", "human_overall_quality")
+corrplot(cor(df_general_annotated[,metric_cols],use="pairwise.complete.obs"), method = "number")
+
+# Human (Specific)
+corrplot(cor(df_specific_annotated[,metric_cols],use="pairwise.complete.obs"), method = "number")
+
+# AI (General)
+metric_cols <- c("accuracy", "safety", "completeness","professional_referral", "overall_quality")
+corrplot(cor(df_general_annotated[,metric_cols],use="pairwise.complete.obs"), method = "number")
+
+# AI (Specific)
+corrplot(cor(df_specific_annotated[,metric_cols],use="pairwise.complete.obs"), method = "number")
+```
+
+## each model's heatmap
+
+## General
+```{r}
+# mistral:7b
+metric_cols <- c("mistral:7b_accuracy", "mistral:7b_safety", "mistral:7b_completeness","mistral:7b_professional_referral", "mistral:7b_overall_quality")
+corrplot(cor(df_general[,metric_cols],use="pairwise.complete.obs"), method = "number")
+
+# llama3.1:8b
+metric_cols <- c("llama3.1:8b_accuracy", "llama3.1:8b_safety", "llama3.1:8b_completeness","llama3.1:8b_professional_referral", "llama3.1:8b_overall_quality")
+corrplot(cor(df_general[,metric_cols],use="pairwise.complete.obs"), method = "number")
+
+# gpt-5.4-mini
+metric_cols <- c("gpt-5.4-mini_accuracy", "gpt-5.4-mini_safety", "gpt-5.4-mini_completeness","gpt-5.4-mini_professional_referral", "gpt-5.4-mini_overall_quality")
+corrplot(cor(df_general[,metric_cols],use="pairwise.complete.obs"), method = "number")
+
+# qwen3-vl-32b-instruct
+metric_cols <- c("qwen3-vl-32b-instruct_accuracy", "qwen3-vl-32b-instruct_safety", "qwen3-vl-32b-instruct_completeness","qwen3-vl-32b-instruct_professional_referral", "qwen3-vl-32b-instruct_overall_quality")
+corrplot(cor(df_general[,metric_cols],use="pairwise.complete.obs"), method = "number", tl.srt = 45)
+```
+
+## Specific
+```{r}
+# mistral:7b
+metric_cols <- c("mistral:7b_accuracy", "mistral:7b_safety", "mistral:7b_completeness","mistral:7b_professional_referral", "mistral:7b_overall_quality")
+corrplot(cor(df_specific[,metric_cols],use="pairwise.complete.obs"), method = "number")
+
+# llama3.1:8b
+metric_cols <- c("llama3.1:8b_accuracy", "llama3.1:8b_safety", "llama3.1:8b_completeness","llama3.1:8b_professional_referral", "llama3.1:8b_overall_quality")
+corrplot(cor(df_specific[,metric_cols],use="pairwise.complete.obs"), method = "number")
+
+# gpt-5.4-mini
+metric_cols <- c("gpt-5.4-mini_accuracy", "gpt-5.4-mini_safety", "gpt-5.4-mini_completeness","gpt-5.4-mini_professional_referral", "gpt-5.4-mini_overall_quality")
+corrplot(cor(df_specific[,metric_cols],use="pairwise.complete.obs"), method = "number")
+
+# qwen3-vl-32b-instruct
+metric_cols <- c("qwen3-vl-32b-instruct_accuracy", "qwen3-vl-32b-instruct_safety", "qwen3-vl-32b-instruct_completeness","qwen3-vl-32b-instruct_professional_referral", "qwen3-vl-32b-instruct_overall_quality")
+corrplot(cor(df_specific[,metric_cols],use="pairwise.complete.obs"), method = "number", tl.srt = 45)
+```
+## overall
+```{r}
+# general
+metric_cols <- names(df_general)[sapply(df_general, is.numeric)]
+corrplot(cor(df_general[,metric_cols],use="pairwise.complete.obs"), method = "circle", tl.pos = "n")
+
+# specific
+corrplot(cor(df_specific[,metric_cols],use="pairwise.complete.obs"), method = "circle", tl.pos = "n")
+```
+## By Metric
+
+```{r}
+# general
+# Accuracy
+metric_cols <- grep("_accuracy$",names(df_general),value=TRUE)
+corrplot(cor(df_general[,metric_cols],use="pairwise.complete.obs"), method = "number", tl.srt = 45)
+# Safety
+metric_cols <- grep("_safety$",names(df_general),value=TRUE)
+corrplot(cor(df_general[,metric_cols],use="pairwise.complete.obs"), method = "number", tl.srt = 45)
+
+# Completeness
+metric_cols <- grep("_completeness$",names(df_general),value=TRUE)
+corrplot(cor(df_general[,metric_cols],use="pairwise.complete.obs"), method = "number", tl.srt = 45)
+
+# Professional Referral
+metric_cols <- grep("_professional_referral$",names(df_general),value=TRUE)
+corrplot(cor(df_general[,metric_cols],use="pairwise.complete.obs"), method = "number", tl.srt = 45)
+
+# Overall
+metric_cols <- grep("_overall_quality$",names(df_general),value=TRUE)
+corrplot(cor(df_general[,metric_cols],use="pairwise.complete.obs"), method = "number", tl.srt = 45)
+```
+
+```{r}
+#specific
+# Accuracy
+metric_cols <- grep("_accuracy$",names(df_general),value=TRUE)
+corrplot(cor(df_specific[,metric_cols],use="pairwise.complete.obs"), method = "number", tl.srt = 45)
+# Safety
+metric_cols <- grep("_safety$",names(df_general),value=TRUE)
+corrplot(cor(df_specific[,metric_cols],use="pairwise.complete.obs"), method = "number", tl.srt = 45)
+
+# Completeness
+metric_cols <- grep("_completeness$",names(df_general),value=TRUE)
+corrplot(cor(df_specific[,metric_cols],use="pairwise.complete.obs"), method = "number", tl.srt = 45)
+
+# Professional Referral
+metric_cols <- grep("_professional_referral$",names(df_general),value=TRUE)
+corrplot(cor(df_specific[,metric_cols],use="pairwise.complete.obs"), method = "number", tl.srt = 45)
+
+# Overall
+metric_cols <- grep("_overall_quality$",names(df_general),value=TRUE)
+corrplot(cor(df_specific[,metric_cols],use="pairwise.complete.obs"), method = "number", tl.srt = 45)
+```
+# 5. Score Distributions
+
+## By model (No Human)
+```{r}
+#General
+# Accuracy
+df_general |> pivot_longer(ends_with("_accuracy")) |>
+  ggplot(aes(name, value)) + 
+  geom_boxplot() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Safety
+df_general |> pivot_longer(ends_with("_safety")) |>
+  ggplot(aes(name, value)) + 
+  geom_boxplot() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Completeness
+df_general |> pivot_longer(ends_with("_completeness")) |>
+  ggplot(aes(name, value)) + 
+  geom_boxplot() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Professional Referral
+df_general |> pivot_longer(ends_with("_professional_referral")) |>
+  ggplot(aes(name, value)) + 
+  geom_boxplot() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Overall
+df_general |> pivot_longer(ends_with("_overall_quality")) |>
+  ggplot(aes(name, value)) + 
+  geom_boxplot() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+```{r}
+#Specific
+# Accuracy
+df_specific |> pivot_longer(ends_with("_accuracy")) |>
+  ggplot(aes(name, value)) + 
+  geom_boxplot() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Safety
+df_specific |> pivot_longer(ends_with("_safety")) |>
+  ggplot(aes(name, value)) + 
+  geom_boxplot() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Completeness
+df_specific |> pivot_longer(ends_with("_completeness")) |>
+  ggplot(aes(name, value)) + 
+  geom_boxplot() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Professional Referral
+df_specific |> pivot_longer(ends_with("_professional_referral")) |>
+  ggplot(aes(name, value)) + 
+  geom_boxplot() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# Overall
+df_specific |> pivot_longer(ends_with("_overall_quality")) |>
+  ggplot(aes(name, value)) + 
+  geom_boxplot() + 
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+## By model (including human)
+```{r}
+#General
+dat <- df_general_annotated %>%
+  pivot_longer(cols = c(
+    accuracy, safety, completeness, professional_referral, overall_quality,
+    human_accuracy, human_safety, human_completeness, human_professional_referral, human_overall_quality),
+    names_to = "metric",
+    values_to = "score")|> mutate(
+    Model = if_else(str_detect(metric, "^human_"), "human", Model),
+    metric = str_remove(metric, "^human_")
+    )
+
+ggplot(dat, aes(x = score, fill = Model)) +
+  geom_density(alpha = 0.2) +
+  facet_wrap(~metric, scales = "free_y") +
+  labs(title = "Distribution of Model vs. Human Scores",
+  x = "Score Value",
+  y = "Density",
+  fill = "Evaluator / Model") +
+  theme_minimal()
+```
+```{r}
+# Specific
+dat_spec <- df_specific_annotated %>%
+  pivot_longer(cols = c(
+    accuracy, safety, completeness, professional_referral, overall_quality,
+    human_accuracy, human_safety, human_completeness, human_professional_referral, human_overall_quality),
+    names_to = "metric",
+    values_to = "score")|> mutate(
+    Model = if_else(str_detect(metric, "^human_"), "human", Model),
+    metric = str_remove(metric, "^human_")
+    )
+
+ggplot(dat_spec, aes(x = score, fill = Model)) +
+  geom_density(alpha = 0.2) +
+  facet_wrap(~metric, scales = "free_y") +
+  labs(title = "Distribution of Model vs. Human Scores",
+  x = "Score Value",
+  y = "Density",
+  fill = "Evaluator / Model") +
+  theme_minimal()
+```
+
+## By Category (General Only)
+```{r}
+ggplot(dat, aes(x = score, fill = Category)) +
+  geom_density(alpha = 0.2) +
+  facet_wrap(~metric, scales = "free_y") +
+  labs(title = "Distribution of Model vs. Human Scores",
+  x = "Score Value",
+  y = "Density",
+  fill = "Category") +
+  theme_minimal()
+```
+
+## By Scenario (General Only)
+```{r}
+ggplot(dat, aes(x = score, fill = Scenario)) +
+  geom_density(alpha = 0.2) +
+  facet_wrap(~metric, scales = "free_y") +
+  labs(title = "Distribution of Model vs. Human Scores",
+  x = "Score Value",
+  y = "Density",
+  fill = "Scenario") +
+  theme_minimal()
+```
+
+
+## By Company (Specific Only)
+
+```{r}
+ggplot(dat_spec, aes(x = score, fill = Company)) +
+  geom_density(alpha = 0.2) +
+  facet_wrap(~metric, scales = "free_y") +
+  labs(title = "Distribution of Model vs. Human Scores",
+  x = "Score Value",
+  y = "Density",
+  fill = "Company") +
+  theme_minimal()
+```
+
+
+
+## 6. Response length and prompt length
+
+```{r}
+#General
+text <- setdiff(df_general |> select(where(is.character)) |> names(),c("Category", "Scenario"))
+
+avg_len <- df_general |> summarise(across(all_of(text), ~ mean(nchar(.), na.rm = TRUE)))
+avg_len
+
+barplot(as.numeric(avg_len), names.arg = text,  main = "Average Character Length", ylab = "Characters", cex.names = 0.5)
+```
+
+```{r}
+#specific
+text <- setdiff(df_specific |> select(where(is.character)) |> names(),c("Company", "Reference"))
+
+avg_len <- df_specific |> summarise(across(all_of(text), ~ mean(nchar(.), na.rm = TRUE)))
+avg_len
+
+barplot(as.numeric(avg_len), names.arg = text,  main = "Average Character Length", ylab = "Characters", cex.names = 0.5)
+```
+
+# 7. Summary Table 
+
+```{r}
+# General
+summary_gen <-dat |> group_by(Model, metric) |> summarise(
+    Mean = mean(score, na.rm = TRUE),
+    .groups = "drop") |>
+  select(Model, metric, Mean) |> pivot_wider(
+    names_from = Model, values_from = Mean)
+summary_gen
+```
+
+```{r}
+summary_gen <-dat_spec |> group_by(Model, metric) |> summarise(
+    Mean = mean(score, na.rm = TRUE),
+    .groups = "drop") |>
+  select(Model, metric, Mean) |> pivot_wider(
+    names_from = Model, values_from = Mean)
+summary_gen
+```
+
+
+# 8. Isolate generated answers and analyze them
+## Worst (By Model, category, etc)
+## Best
+## Check the tone for each model and note it here
+## find anything odd/weird/unique about a model? describe them here!
+## put the parameters we used to in the python notebook like token things 
+## what is each model known for?
